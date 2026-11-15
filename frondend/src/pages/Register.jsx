@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // <-- 1. Importer useNavigate
 import "./Register.css";
 
 function Register() {
@@ -7,15 +7,15 @@ function Register() {
     fullName: "",
     email: "",
     phone: "",
-    university: "",
     password: "",
-    confirmPassword: "",
-    role: "both"
+    confirmPassword: ""
   });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate(); // <-- 2. Initialiser la navigation
 
   function handleChange(e) {
     setFormData({
@@ -64,20 +64,16 @@ function Register() {
       }
 
       // Inscription réussie
-      setSuccess("Inscription réussie ! Votre compte est créé.");
-
+      setSuccess("Inscription réussie ! Redirection en cours...");
       console.log("Utilisateur enregistré :", data.user);
 
-      // Vider le formulaire
-      setFormData({
-        fullName: "",
-        email: "",
-        phone: "",
-        university: "",
-        password: "",
-        confirmPassword: "",
-        role: "both"
-      });
+      // 3. Stocker les infos de l'utilisateur dans le localStorage
+      localStorage.setItem("user", JSON.stringify(data.user || formData));
+
+      // 4. Rediriger vers le dashboard après un court délai (ou immédiatement)
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
 
     } catch (err) {
       console.error("Registration error:", err);
@@ -95,7 +91,7 @@ function Register() {
 
       <header className="register-header">
         <a href="/" className="register-logo">
-          🚗 Uni<span>Ride</span>
+          🚗 Wass<span>elni</span>
         </a>
 
         <a href="/login" className="login-link">
@@ -106,10 +102,9 @@ function Register() {
       <main className="register-main">
 
         <div className="register-intro">
-          <h1>Rejoignez UniRide</h1>
+          <h1>Rejoignez Wasselni</h1>
           <p>
-            Partagez vos trajets universitaires,
-            économisez et voyagez ensemble.
+            Partagez vos trajets, économisez et voyagez ensemble en toute simplicité.
           </p>
         </div>
 
@@ -127,7 +122,7 @@ function Register() {
               <input
                 type="text"
                 name="fullName"
-                placeholder="Ex : Azer Missaoui"
+                placeholder="Ex : Firas Kaireddine"
                 value={formData.fullName}
                 onChange={handleChange}
                 required
@@ -135,11 +130,11 @@ function Register() {
             </div>
 
             <div className="form-group">
-              <label>Email universitaire</label>
+              <label>Email</label>
               <input
                 type="email"
                 name="email"
-                placeholder="exemple@universite.tn"
+                placeholder="exemple@gmail.com"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -156,36 +151,6 @@ function Register() {
                 onChange={handleChange}
                 required
               />
-            </div>
-
-            <div className="form-group">
-              <label>Université / Établissement</label>
-              <select
-                name="university"
-                value={formData.university}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Choisir votre établissement</option>
-                <option value="ENIG">ENIG - Gabès</option>
-                <option value="FSS">Faculté des Sciences de Sfax</option>
-                <option value="FST">Faculté des Sciences de Tunis</option>
-                <option value="ISIMG">ISIMG - Gabès</option>
-                <option value="OTHER">Autre établissement</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Type de compte</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-              >
-                <option value="both">Conducteur et passager</option>
-                <option value="passenger">Passager</option>
-                <option value="driver">Conducteur</option>
-              </select>
             </div>
 
             <div className="form-row">
@@ -253,7 +218,7 @@ function Register() {
       </main>
 
       <footer className="register-bottom">
-        UniRide © 2026 — Covoiturage Universitaire
+        Wasselni © 2026 — Covoiturage Interurbain
       </footer>
 
     </div>

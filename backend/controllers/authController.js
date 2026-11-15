@@ -1,118 +1,95 @@
-
 const User = require("../models/User");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 
+// Fonction d'Inscription (Register)
 const register = async (req, res) => {
     try {
-        const {
+        const { fullName, email, password, phone } = req.body;
+
+        // 1. Vérifier si l'utilisateur existe déjà
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "Cet email est déjà utilisé." });
+        }
+
+        // 2. Hasher le mot de passe
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // 3. Créer et sauvegarder le nouvel utilisateur
+        const newUser = new User({
             fullName,
             email,
-            phone,
-            university,
-            password,
-            confirmPassword,
-            role
-        } = req.body;
-
-        // 1. Vérifier les champs obligatoires
-        if (
-            !fullName ||
-            !email ||
-            !phone ||
-            !university ||
-            !password ||
-            !confirmPassword
-        ) {
-            return res.status(400).json({
-                message: "All fields are required"
-            });
-        }
-
-        // 2. Vérifier l'email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        const normalizedEmail = email.trim().toLowerCase();
-
-        if (!emailRegex.test(normalizedEmail)) {
-            return res.status(400).json({
-                message: "Invalid email address"
-            });
-        }
-
-        // 3. Vérifier la longueur du mot de passe
-        if (password.length < 8) {
-            return res.status(400).json({
-                message: "Password must contain at least 8 characters"
-            });
-        }
-
-        // 4. Vérifier la confirmation
-        if (password !== confirmPassword) {
-            return res.status(400).json({
-                message: "Passwords do not match"
-            });
-        }
-
-        // 5. Vérifier si l'email existe
-        const existingUser = await User.findOne({
-            email: normalizedEmail
-        });
-
-        if (existingUser) {
-            return res.status(409).json({
-                message: "Email already registered"
-            });
-        }
-
-        // 6. Vérifier le rôle
-        const userRole = role || "both";
-
-        if (!["driver", "passenger", "both"].includes(userRole)) {
-            return res.status(400).json({
-                message: "Invalid user role"
-            });
-        }
-
-        // 7. Hacher le mot de passe
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // 8. Créer et enregistrer l'utilisateur
-        const user = await User.create({
-            fullName,
-            email: normalizedEmail,
-            phone,
-            university,
             password: hashedPassword,
-            role: userRole
+            phone
         });
 
-        // 9. Retourner une réponse sans exposer le mot de passe
-        return res.status(201).json({
-            message: "Registration successful",
+        await newUser.save();
+
+        // 4. Répondre avec succès
+        res.status(201).json({
+            message: "Compte créé avec succès !",
+            user: {
+                id: newUser._id,
+                fullName: newUser.fullName,
+                email: newUser.email,
+                phone: newUser.phone
+            }
+        });
+
+    } catch (err) {
+        console.error("Erreur serveur register:", err);
+        res.status(500).json({ message: "Erreur serveur lors de l'inscription." });
+    }
+};
+
+// Fonction de Connexion (Login)
+const login = async (req, res) => {
+    try {
+        const { identifier, password } = req.body; // 'identifier' peut être l'email ou le téléphone
+
+        if (!identifier || !password) {
+            return res.status(400).json({ message: "Veuillez remplir tous les champs." });
+        }
+
+        // 1. Chercher l'utilisateur par email OU par téléphone
+        const user = await User.findOne({
+            $or: [{ email: identifier.trim() }, { phone: identifier.trim() }]
+        });
+
+        if (!user) {
+            console.log("Utilisateur non trouvé pour l'identifiant :", identifier);
+            return res.status(400).json({ message: "Email/Téléphone ou mot de passe incorrect." });
+        }
+
+        // --- TRACEUR DE DEBUG ---
+        console.log("Mot de passe tapé :", password);
+        console.log("Mot de passe hashé dans MongoDB :", user.password);
+
+        // 2. Vérifier le mot de passe (comparaison avec le hash bcrypt)
+        const isMatch = await bcrypt.compare(password, user.password);
+        console.log("Résultat de bcrypt.compare :", isMatch);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: "Email/Téléphone ou mot de passe incorrect." });
+        }
+
+        // 3. Connexion réussie, on renvoie les infos de l'utilisateur
+        res.status(200).json({
+            message: "Connexion réussie !",
             user: {
                 id: user._id,
                 fullName: user.fullName,
                 email: user.email,
-                phone: user.phone,
-                university: user.university,
-                role: user.role
+                phone: user.phone
             }
         });
 
-    } catch (error) {
-        console.error("Registration error:", error);
-
-        if (error.code === 11000) {
-            return res.status(409).json({
-                message: "Email already registered"
-            });
-        }
-
-        return res.status(500).json({
-            message: "Server error",
-            error: error.message
-        });
+    } catch (err) {
+        console.error("Erreur serveur login:", err);
+        res.status(500).json({ message: "Erreur serveur lors de la connexion." });
     }
 };
 
-module.exports = { register };
+// --- TRÈS IMPORTANT : EXPORTER LES DEUX FONCTIONS ---
+module.exports = { register, login };
