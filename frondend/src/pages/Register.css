@@ -1,10 +1,9 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 .register-page {
   min-height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: #0f172a;
   display: flex;
@@ -51,7 +50,7 @@
 }
 
 .register-logo span {
-  color: #06b6d4;
+  color: #38bdf8; /* Bleu ciel harmonisé */
 }
 
 .login-link {
@@ -61,7 +60,7 @@
 }
 
 .login-link strong {
-  color: #06b6d4;
+  color: #38bdf8;
 }
 
 .register-main {
@@ -79,6 +78,7 @@
   font-size: 32px;
   font-weight: 800;
   margin-bottom: 8px;
+  color: #ffffff; /* Écrit en blanc */
 }
 
 .register-intro p {
@@ -125,8 +125,7 @@
   color: #334155;
 }
 
-.form-group input,
-.form-group select {
+.form-group input {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid #e2e8f0;
@@ -138,8 +137,7 @@
   transition: all 0.25s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus {
   border-color: #4f46e5;
   background: white;
   box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
@@ -185,6 +183,12 @@
 
 .register-error {
   color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.register-success {
+  color: #16a34a;
   font-size: 13px;
   margin-bottom: 12px;
 }
